@@ -1,6 +1,7 @@
 package tflint
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -28,13 +29,12 @@ type rawConfig struct {
 
 // Config describes the behavior of TFLint
 type Config struct {
-	DeepCheck        bool
-	AwsCredentials   client.AwsCredentials
-	IgnoreModule     map[string]bool
-	IgnoreRule       map[string]bool
-	Varfile          []string
-	TerraformVersion string
-	Rules            map[string]*RuleConfig
+	DeepCheck      bool
+	AwsCredentials client.AwsCredentials
+	IgnoreModule   map[string]bool
+	IgnoreRule     map[string]bool
+	Varfile        []string
+	Rules          map[string]*RuleConfig
 }
 
 // RuleConfig is a TFLint's rule config
@@ -47,13 +47,12 @@ type RuleConfig struct {
 // It is mainly used for testing
 func EmptyConfig() *Config {
 	return &Config{
-		DeepCheck:        false,
-		AwsCredentials:   client.AwsCredentials{},
-		IgnoreModule:     map[string]bool{},
-		IgnoreRule:       map[string]bool{},
-		Varfile:          []string{},
-		TerraformVersion: "",
-		Rules:            map[string]*RuleConfig{},
+		DeepCheck:      false,
+		AwsCredentials: client.AwsCredentials{},
+		IgnoreModule:   map[string]bool{},
+		IgnoreRule:     map[string]bool{},
+		Varfile:        []string{},
+		Rules:          map[string]*RuleConfig{},
 	}
 }
 
@@ -122,10 +121,6 @@ func (c *Config) Merge(other *Config) *Config {
 	ret.IgnoreRule = mergeBoolMap(ret.IgnoreRule, other.IgnoreRule)
 	ret.Varfile = append(ret.Varfile, other.Varfile...)
 
-	if other.TerraformVersion != "" {
-		ret.TerraformVersion = other.TerraformVersion
-	}
-
 	ret.Rules = mergeRuleMap(ret.Rules, other.Rules)
 
 	return ret
@@ -152,13 +147,12 @@ func (c *Config) copy() *Config {
 	}
 
 	return &Config{
-		DeepCheck:        c.DeepCheck,
-		AwsCredentials:   c.AwsCredentials,
-		IgnoreModule:     ignoreModule,
-		IgnoreRule:       ignoreRule,
-		Varfile:          varfile,
-		TerraformVersion: c.TerraformVersion,
-		Rules:            rules,
+		DeepCheck:      c.DeepCheck,
+		AwsCredentials: c.AwsCredentials,
+		IgnoreModule:   ignoreModule,
+		IgnoreRule:     ignoreRule,
+		Varfile:        varfile,
+		Rules:          rules,
 	}
 }
 
@@ -176,13 +170,16 @@ func loadConfigFromFile(file string) (*Config, error) {
 		return nil, diags
 	}
 
+	if raw.Config != nil && raw.Config.TerraformVersion != nil {
+		return nil, errors.New("`terraform_version` was removed in v0.9.0 because the option is no longer used")
+	}
+
 	cfg := raw.toConfig()
 	log.Printf("[DEBUG] Config loaded")
 	log.Printf("[DEBUG]   DeepCheck: %t", cfg.DeepCheck)
 	log.Printf("[DEBUG]   IgnoreModule: %#v", cfg.IgnoreModule)
 	log.Printf("[DEBUG]   IgnoreRule: %#v", cfg.IgnoreRule)
 	log.Printf("[DEBUG]   Varfile: %#v", cfg.Varfile)
-	log.Printf("[DEBUG]   TerraformVersion: %s", cfg.TerraformVersion)
 	log.Printf("[DEBUG]   Rules: %#v", cfg.Rules)
 
 	return raw.toConfig(), nil
@@ -233,9 +230,6 @@ func (raw *rawConfig) toConfig() *Config {
 		}
 		if rc.Varfile != nil {
 			ret.Varfile = *rc.Varfile
-		}
-		if rc.TerraformVersion != nil {
-			ret.TerraformVersion = *rc.TerraformVersion
 		}
 	}
 
