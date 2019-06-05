@@ -1,6 +1,7 @@
 config {
   terraform_version = "0.9.11"
   deep_check = true
+  force = true
 
   aws_credentials = {
     access_key = "AWS_ACCESS_KEY"

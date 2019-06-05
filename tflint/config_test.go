@@ -27,6 +27,7 @@ func Test_LoadConfig(t *testing.T) {
 			File: filepath.Join(currentDir, "test-fixtures", "config", "config.hcl"),
 			Expected: &Config{
 				DeepCheck: true,
+				Force:     true,
 				AwsCredentials: client.AwsCredentials{
 					AccessKey: "AWS_ACCESS_KEY",
 					SecretKey: "AWS_SECRET_KEY",
@@ -64,6 +65,7 @@ func Test_LoadConfig(t *testing.T) {
 			Fallback: filepath.Join(currentDir, "test-fixtures", "config", "fallback.hcl"),
 			Expected: &Config{
 				DeepCheck: true,
+				Force:     true,
 				AwsCredentials: client.AwsCredentials{
 					AccessKey: "AWS_ACCESS_KEY",
 					SecretKey: "AWS_SECRET_KEY",
@@ -156,6 +158,7 @@ func Test_LoadConfig_error(t *testing.T) {
 func Test_Merge(t *testing.T) {
 	cfg := &Config{
 		DeepCheck: true,
+		Force:     true,
 		AwsCredentials: client.AwsCredentials{
 			AccessKey: "access_key",
 			SecretKey: "secret_key",
@@ -211,6 +214,7 @@ func Test_Merge(t *testing.T) {
 			Name: "override and merge",
 			Base: &Config{
 				DeepCheck: true,
+				Force:     false,
 				AwsCredentials: client.AwsCredentials{
 					AccessKey: "access_key",
 					SecretKey: "secret_key",
@@ -240,6 +244,7 @@ func Test_Merge(t *testing.T) {
 			},
 			Other: &Config{
 				DeepCheck: false,
+				Force:     true,
 				AwsCredentials: client.AwsCredentials{
 					AccessKey: "ACCESS_KEY",
 					SecretKey: "SECRET_KEY",
@@ -268,6 +273,7 @@ func Test_Merge(t *testing.T) {
 			},
 			Expected: &Config{
 				DeepCheck: true, // DeepCheck will not override
+				Force:     true,
 				AwsCredentials: client.AwsCredentials{
 					AccessKey: "ACCESS_KEY",
 					SecretKey: "SECRET_KEY",
@@ -315,6 +321,7 @@ func Test_Merge(t *testing.T) {
 func Test_copy(t *testing.T) {
 	cfg := &Config{
 		DeepCheck: true,
+		Force:     true,
 		AwsCredentials: client.AwsCredentials{
 			AccessKey: "access_key",
 			SecretKey: "secret_key",
@@ -350,6 +357,12 @@ func Test_copy(t *testing.T) {
 			Name: "DeepCheck",
 			SideEffect: func(c *Config) {
 				c.DeepCheck = false
+			},
+		},
+		{
+			Name: "Force",
+			SideEffect: func(c *Config) {
+				c.Force = false
 			},
 		},
 		{

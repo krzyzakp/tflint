@@ -17,6 +17,7 @@ var fallbackConfigFile = "~/.tflint.hcl"
 type rawConfig struct {
 	Config *struct {
 		DeepCheck        *bool              `hcl:"deep_check"`
+		Force            *bool              `hcl:"force"`
 		AwsCredentials   *map[string]string `hcl:"aws_credentials"`
 		IgnoreModule     *map[string]bool   `hcl:"ignore_module"`
 		IgnoreRule       *map[string]bool   `hcl:"ignore_rule"`
@@ -29,6 +30,7 @@ type rawConfig struct {
 // Config describes the behavior of TFLint
 type Config struct {
 	DeepCheck        bool
+	Force            bool
 	AwsCredentials   client.AwsCredentials
 	IgnoreModule     map[string]bool
 	IgnoreRule       map[string]bool
@@ -48,6 +50,7 @@ type RuleConfig struct {
 func EmptyConfig() *Config {
 	return &Config{
 		DeepCheck:        false,
+		Force:            false,
 		AwsCredentials:   client.AwsCredentials{},
 		IgnoreModule:     map[string]bool{},
 		IgnoreRule:       map[string]bool{},
@@ -104,6 +107,9 @@ func (c *Config) Merge(other *Config) *Config {
 	if other.DeepCheck {
 		ret.DeepCheck = true
 	}
+	if other.Force {
+		ret.Force = true
+	}
 
 	if other.AwsCredentials.AccessKey != "" {
 		ret.AwsCredentials.AccessKey = other.AwsCredentials.AccessKey
@@ -153,6 +159,7 @@ func (c *Config) copy() *Config {
 
 	return &Config{
 		DeepCheck:        c.DeepCheck,
+		Force:            c.Force,
 		AwsCredentials:   c.AwsCredentials,
 		IgnoreModule:     ignoreModule,
 		IgnoreRule:       ignoreRule,
@@ -179,6 +186,7 @@ func loadConfigFromFile(file string) (*Config, error) {
 	cfg := raw.toConfig()
 	log.Printf("[DEBUG] Config loaded")
 	log.Printf("[DEBUG]   DeepCheck: %t", cfg.DeepCheck)
+	log.Printf("[DEBUG]   Force: %t", cfg.Force)
 	log.Printf("[DEBUG]   IgnoreModule: %#v", cfg.IgnoreModule)
 	log.Printf("[DEBUG]   IgnoreRule: %#v", cfg.IgnoreRule)
 	log.Printf("[DEBUG]   Varfile: %#v", cfg.Varfile)
@@ -217,6 +225,9 @@ func (raw *rawConfig) toConfig() *Config {
 	if rc != nil {
 		if rc.DeepCheck != nil {
 			ret.DeepCheck = *rc.DeepCheck
+		}
+		if rc.Force != nil {
+			ret.Force = *rc.Force
 		}
 		if rc.AwsCredentials != nil {
 			credentials := *rc.AwsCredentials

@@ -101,7 +101,7 @@ Application Options:
       --aws-secret-key=SECRET_KEY           AWS secret key used in deep check mode
       --aws-profile=PROFILE                 AWS shared credential profile name used in deep check mode
       --aws-region=REGION                   AWS region used in deep check mode
-      --error-with-issues                   Return error code when issues exist
+      --force                               Return zero exit status even if issues found
       --fast                                Ignore slow rules (aws_instance_invalid_ami only)
   -q, --quiet                               Do not output any message when no issues are found (default format only)
 
@@ -122,6 +122,7 @@ The config file is written in [HCL](https://github.com/hashicorp/hcl), and you c
 config {
   terraform_version = "0.12.0"
   deep_check = true
+  force = false
 
   aws_credentials = {
     access_key = "AWS_ACCESS_KEY"
@@ -290,6 +291,14 @@ $ tflint main.tf
 You can set the version of Terraform you are using. If it is set, TFLint will detect issues according to it.
 
 NOTE: This option is now no longer used and will be removed in the future.
+
+## Exit Statuses
+
+TFLint returns the following exit statuses on exit:
+
+- 0: No issues found
+- 1: Errors occurred
+- 2: No errors occurred, but issues found
 
 ## Debugging
 
